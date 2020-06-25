@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Plantagoo.DTOs.Projects;
+using Plantagoo.Filtering;
 using Plantagoo.Interfaces;
 using System;
 using System.Security.Claims;
@@ -34,14 +35,18 @@ namespace Plantagoo.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> FindUserProjects()
+        public async Task<ActionResult> FindUserProjects([FromQuery] FilterOptions filter)
         {
             var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new NotImplementedException());
-            var serviceResponse = await _projectService.FindAllAsync(userId);
+            var serviceResponse = await _projectService.FilterAllAsync(userId, filter);
             switch (serviceResponse.ResponseType)
             {
                 case EResponseType.Success:
-                    return Ok(serviceResponse.Data);
+                    Response.Headers.Add("X-Paging-PageNo", serviceResponse.Data?.CurrentPage.ToString());
+                    Response.Headers.Add("X-Paging-PageSize", serviceResponse.Data?.PageSize.ToString());
+                    Response.Headers.Add("X-Paging-PageCount", serviceResponse.Data?.TotalPages.ToString());
+                    Response.Headers.Add("X-Paging-TotalRecordCount", serviceResponse.Data?.TotalCount.ToString());
+                    return Ok(serviceResponse.Data?.Items);
                 case EResponseType.NotFound:
                     return NotFound();
                 default:

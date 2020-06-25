@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Plantagoo.Data;
 using Plantagoo.DTOs.Projects;
 using Plantagoo.Entities;
+using Plantagoo.Filtering;
 using Plantagoo.Interfaces;
 using Plantagoo.Response;
 using System;
@@ -19,12 +21,14 @@ namespace Plantagoo.Services
         private readonly ILogger _logger;
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IFilterHelper<ProjectDetailsDTO> _filterHelper;
 
-        public ProjectService(ILogger<ProjectService> logger, AppDbContext context, IMapper mapper)
+        public ProjectService(ILogger<ProjectService> logger, AppDbContext context, IMapper mapper, IFilterHelper<ProjectDetailsDTO> filterHelper)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _filterHelper = filterHelper ?? throw new ArgumentNullException(nameof(filterHelper));
         }
 
         private IQueryable<ProjectModel> GetUserProjects(Guid userId)
@@ -142,6 +146,36 @@ namespace Plantagoo.Services
             {
                 serviceResponse.ResponseType = EResponseType.NotFound;
                 serviceResponse.Message = "Owner (User) not found.";
+            }
+            catch { throw; }
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<PagingReturnModel<ProjectDetailsDTO>>> FilterAllAsync(Guid userId, FilterOptions filterParameters)
+        {
+            var predicate = PredicateBuilder.New<ProjectDetailsDTO>();
+            predicate = predicate.Or(p => p.Name.Contains(filterParameters.SearchTerm));
+            predicate = predicate.Or(p => p.Description.Contains(filterParameters.SearchTerm));
+
+            var serviceResponse = new ServiceResponse<PagingReturnModel<ProjectDetailsDTO>>();
+            try
+            {
+                var projects = _mapper.ProjectTo<ProjectDetailsDTO>(GetUserProjects(userId))
+                        .Where(predicate)
+                        .AsNoTracking();
+
+                var sortedProjects = _filterHelper.ApplySorting(projects, filterParameters.OrderBy);
+                var pagedProjects = await _filterHelper.ApplyPaging(sortedProjects, filterParameters.Page, filterParameters.Limit);
+
+                if (pagedProjects?.Items?.Any() == true)
+                {
+                    serviceResponse.Data = pagedProjects;
+                }
+                else
+                {
+                    serviceResponse.ResponseType = EResponseType.NotFound;
+                    serviceResponse.Message = "Project and/or Owner (User) not found.";
+                }
             }
             catch { throw; }
             return serviceResponse;

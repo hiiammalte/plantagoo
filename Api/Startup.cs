@@ -14,7 +14,9 @@ using Plantagoo.Api.Middleware;
 using Plantagoo.Authentication;
 using Plantagoo.AutoMapper;
 using Plantagoo.Data;
+using Plantagoo.DTOs.Projects;
 using Plantagoo.Encryption;
+using Plantagoo.Filtering;
 using Plantagoo.Interfaces;
 using Plantagoo.Services;
 using System.Text;
@@ -42,6 +44,9 @@ namespace Plantagoo.Api
             //Encryption & Token
             services.AddSingleton<IPasswordHasher, PBKDF2Hasher>();
             services.AddSingleton<ITokenHelper, JWTHelper>();
+
+            //Paging & Sorting on Web-Request
+            services.AddScoped<IFilterHelper<ProjectDetailsDTO>, FilterHelper<ProjectDetailsDTO>>();
 
             //Services
             services.AddScoped<IAuthService, AuthService>();

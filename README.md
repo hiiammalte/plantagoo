@@ -16,6 +16,7 @@ Personally I’ve been repeatedly creating ASP.NET Core API projects from scratc
 - PBKDF2-based hashing
 - Middleware-based global error handling
 - Restful API endpoints, returning DTOs and HTTP status codes
+- Implementation of filtering, paging & sorting for API endpoint, which returns lists of objects
 - Implementation of API endpoint versioning
 - Entity Framework Core-based data access via POCO entities
 - AutoMapper-based object-to-object mapping and database query optimization
