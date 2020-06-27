@@ -21,6 +21,7 @@ Personally I’ve been repeatedly creating ASP.NET Core API projects from scratc
 - Entity Framework Core-based data access via POCO entities
 - AutoMapper-based object-to-object mapping and database query optimization
 - Security-focused configurability of database connection string and JWT-parameters via environment-based „appsettings.json“-files, secrets and/or environment variables
+- xUnit-based integration testing, including setup, seeding and teardown of dedicated database
 
 ## Getting started
 
@@ -89,3 +90,13 @@ dotnet run
 ```
 
 12. Launch https://localhost:5001/swagger/index.html in your browser to view the Swagger documentation of your API
+
+## Technologies
+
+- .NET Core 3.1
+- ASP.NET Core 3.1
+- Entity Framework Core 3.1
+- AutoMapper
+- Docker
+- Swashbuckle
+- xUnit
